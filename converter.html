@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Currency Converter</title>
+  <style>
+    /* --- Reuse the same styles as the login page --- */
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: Arial, sans-serif;
+      background-image: linear-gradient(rgba(0,0,50,0.8), rgba(0,0,50,0.8)), url('https://cdn.corporatefinanceinstitute.com/assets/currency-basket.jpeg');
+      background-size: cover;
+      background-position: center;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      color: #fff;
+    }
+
+    .container {
+      width: 100%;
+      height: 100%;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .auth-box {
+      background: rgba(255, 255, 255, 0.3);
+      border-radius: 10px;
+      padding: 30px;
+      max-width: 400px;
+      width: 100%;
+      backdrop-filter: blur(10px);
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+      text-align: center;
+    }
+
+    .title {
+      font-size: 28px;
+      font-weight: bold;
+      color: #fff;
+      margin-bottom: 25px;
+    }
+
+    .input-group {
+      margin-bottom: 20px;
+      text-align: left;
+    }
+
+    .label {
+      display: block;
+      color: #fff;
+      margin-bottom: 8px;
+      font-size: 14px;
+    }
+
+    .input {
+      width: 100%;
+      padding: 12px;
+      border: 2px solid #ddd;
+      border-radius: 5px;
+      background-color: transparent;
+      color: #fff;
+      font-size: 16px;
+      transition: border-color 0.3s ease;
+    }
+
+    .input:focus {
+      border-color: #4CAF50;
+      outline: none;
+    }
+
+    .btn {
+      background-color: #4CAF50;
+      color: #fff;
+      width: 100%;
+      padding: 15px;
+      border: none;
+      border-radius: 5px;
+      font-size: 18px;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+    }
+
+    .btn:hover {
+      background-color: #45a049;
+    }
+
+    #result {
+      margin-top: 20px;
+      font-weight: 600;
+      color: #d4f4dd;
+      min-height: 1.5em;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="auth-box">
+      <h2 class="title">Currency Converter</h2>
+
+      <form id="convertor-form">
+        <div class="input-group">
+          <label for="from-currency" class="label">From</label>
+          <select id="from-currency" class="input" required>
+            <!-- options added dynamically -->
+          </select>
+        </div>
+
+        <div class="input-group">
+          <label for="amount" class="label">Amount</label>
+          <input type="number" id="amount" class="input" placeholder="Enter amount" min="0" step="any" required />
+        </div>
+
+        <div class="input-group">
+          <label for="to-currency" class="label">To</label>
+          <select id="to-currency" class="input" required>
+            <!-- options added dynamically -->
+          </select>
+        </div>
+
+        <button type="submit" class="btn">Convert</button>
+
+        <div id="result"></div>
+      </form>
+    </div>
+  </div>
+
+  <script>
+    const fromSelect = document.getElementById('from-currency');
+    const toSelect = document.getElementById('to-currency');
+    const amountInput = document.getElementById('amount');
+    const resultDiv = document.getElementById('result');
+
+    // Sample currency options
+    const currencies = ['USD', 'EUR', 'INR', 'GBP', 'JPY', 'AUD', 'CAD', 'CHF'];
+
+    function populateSelects() {
+      currencies.forEach(cur => {
+        const option1 = document.createElement('option');
+        option1.value = cur;
+        option1.textContent = cur;
+        fromSelect.appendChild(option1);
+
+        const option2 = document.createElement('option');
+        option2.value = cur;
+        option2.textContent = cur;
+        toSelect.appendChild(option2);
+      });
+
+      fromSelect.value = 'USD';
+      toSelect.value = 'INR';
+    }
+
+    async function convertCurrency(e) {
+      e.preventDefault();
+
+      const from = fromSelect.value;
+      const to = toSelect.value;
+      const amount = parseFloat(amountInput.value);
+
+      if (isNaN(amount) || amount <= 0) {
+        alert('Please enter a valid amount greater than zero');
+        return;
+      }
+
+      try {
+        const response = await fetch(`https://api.exchangerate-api.com/v4/latest/${from}`);
+        if (!response.ok) throw new Error('Network response was not ok');
+        const data = await response.json();
+
+        if (!data.rates[to]) {
+          alert('Conversion rate not found for selected currency.');
+          return;
+        }
+
+        const rate = data.rates[to];
+        const converted = (amount * rate).toFixed(2);
+
+        resultDiv.textContent = `${amount} ${from} = ${converted} ${to}`;
+      } catch (error) {
+        alert('Error fetching conversion rates. Please try again later.');
+        console.error(error);
+      }
+    }
+
+    populateSelects();
+    document.getElementById('convertor-form').addEventListener('submit', convertCurrency);
+  </script>
+</body>
+</html>
